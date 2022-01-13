@@ -39,7 +39,6 @@ ZOversize = 0.05;
 
 %% subfunctions
 function setMinMax(object, axis)
-
     try
         % min value
         Min = eval("min(object." + axis + "Data);");
@@ -60,11 +59,9 @@ function setMinMax(object, axis)
     catch
         % axis doesnt have that parameter
     end
-
 end
 
 function axes(object)
-
     object.Color = c_white;
 
     % axis color
@@ -78,12 +75,10 @@ function axes(object)
     object.YGrid = "on";
     object.ZGrid = "on";
 
-    object.Title.Color = c_black;
-    
+    object.Title.Color = c_black;  
 end
 
 function line(object)
-
     object.Color = c_line{color};
 
     % select next color, avoid indexing out range
@@ -93,21 +88,48 @@ function line(object)
     setMinMax(object,"X");
     setMinMax(object,"Y");
     setMinMax(object,"Z");
+end
 
+function UIContainer(object)
+    object.BackgroundColor = c_white;
 end
 
 function panel(object)
-
     object.BackgroundColor = c_white;
-
 end
 
 function legend(object)
-
     object.EdgeColor = c_black;
     object.TextColor = c_black;
     object.Color = c_white;
+end
 
+function setRange(object)
+    % set limit for axis
+    dX = XLim(2) - XLim(1);
+    dY = YLim(2) - YLim(1);
+    dZ = ZLim(2) - ZLim(1);
+
+    % calculate delta size
+    dX = dX * XOversize;
+    dY = dY * YOversize;
+    dZ = dZ * ZOversize;
+
+    % set range
+    if abs(dX) ~= inf
+        object.XLim = [XLim(1) - dX, XLim(2) + dX];
+    end
+    if abs(dY) ~= inf
+        object.YLim = [YLim(1) - dY, YLim(2) + dY];
+    end
+    if abs(dZ) ~= inf
+        object.ZLim = [ZLim(1) - dZ, ZLim(2) + dZ];
+    end
+
+    % set range
+    object.XLimMode = XMode;
+    object.YLimMode = YMode;
+    object.ZLimMode = ZMode;
 end
 
 % recursive function called for each object
@@ -140,7 +162,7 @@ function inspect_child(object)
     elseif strcmp(obj_class, 'matlab.graphics.illustration.Legend')
         legend(object)
     elseif strcmp(obj_class, 'matlab.ui.container.internal.UIContainer')
-        % None
+        UIContainer(object)
     elseif strcmp(obj_class, 'matlab.graphics.chart.primitive.Stair')
         line(object);
     else
@@ -158,32 +180,7 @@ function inspect_child(object)
     end
 
     if strcmp(obj_class, 'matlab.graphics.axis.Axes')
-        % set limit for axis
-        dX = XLim(2) - XLim(1);
-        dY = YLim(2) - YLim(1);
-        dZ = ZLim(2) - ZLim(1);
-
-        % calculate delta size
-        dX = dX * XOversize;
-        dY = dY * YOversize;
-        dZ = dZ * ZOversize;
-
-        % set range
-        if abs(dX) ~= inf
-            object.XLim = [XLim(1) - dX, XLim(2) + dX];
-        end
-        if abs(dY) ~= inf
-            object.YLim = [YLim(1) - dY, YLim(2) + dY];
-        end
-        if abs(dZ) ~= inf
-            object.ZLim = [ZLim(1) - dZ, ZLim(2) + dZ];
-        end
-
-        % set range
-        object.XLimMode = XMode;
-        object.YLimMode = YMode;
-        object.ZLimMode = ZMode;
-
+        setRange(object);
     end
 
 end
