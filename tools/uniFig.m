@@ -40,22 +40,26 @@ ZOversize = 0.05;
 %% subfunctions
 function setMinMax(object, axis)
 
-    % min value
-    Min = eval("min(object." + axis + "Data);");
+    try
+        % min value
+        Min = eval("min(object." + axis + "Data);");
+    
+        % max value
+        Max = eval("max(object." + axis + "Data);");
+    
+        % store min
+        if ~isempty(Min)
+            eval(axis + "Lim(1) = min(" + axis + "Lim(1), Min);");
+        end
+    
+        % store max
+        if ~isempty(Max)
+            eval(axis + "Lim(2) = max(" + axis + "Lim(2), Max);");
+        end
 
-    % max value
-    Max = eval("max(object." + axis + "Data);");
-
-    % store min
-    if ~isempty(Min)
-        eval(axis + "Lim(1) = min(" + axis + "Lim(1), Min);");
+    catch
+        % axis doesnt have that parameter
     end
-
-    % store max
-    if ~isempty(Max)
-        eval(axis + "Lim(2) = max(" + axis + "Lim(2), Max);");
-    end
-
 
 end
 
