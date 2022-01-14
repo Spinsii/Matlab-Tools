@@ -134,12 +134,11 @@ end
 
 % recursive function called for each object
 function inspect_child(object)
-    obj_class = class(object);
 
-    if strcmp(obj_class, 'matlab.ui.Figure')
+    if isa(object, 'matlab.ui.Figure')
         % None
         % maybe resize and position all legends
-    elseif strcmp(obj_class, 'matlab.graphics.axis.Axes')
+    elseif isa(object, 'matlab.graphics.axis.Axes')
 
         % reset colormap
         color = 1;
@@ -151,23 +150,23 @@ function inspect_child(object)
      
         axes(object);
 
-    elseif strcmp(obj_class, 'matlab.graphics.chart.primitive.Line')
+    elseif isa(object, 'matlab.graphics.chart.primitive.Line')
         line(object)
-    elseif strcmp(obj_class, 'matlab.graphics.primitive.Transform')
+    elseif isa(object, 'matlab.graphics.primitive.Transform')
         % None
-    elseif strcmp(obj_class, 'matlab.graphics.primitive.Line')
+    elseif isa(object, 'matlab.graphics.primitive.Line')
         line(object);
-    elseif strcmp(obj_class, 'matlab.ui.container.Panel')
+    elseif isa(object, 'matlab.ui.container.Panel')
         panel(object);
-    elseif strcmp(obj_class, 'matlab.graphics.illustration.Legend')
+    elseif isa(object, 'matlab.graphics.illustration.Legend')
         legend(object)
-    elseif strcmp(obj_class, 'matlab.ui.container.internal.UIContainer')
+    elseif isa(object, 'matlab.ui.container.internal.UIContainer')
         UIContainer(object)
-    elseif strcmp(obj_class, 'matlab.graphics.chart.primitive.Stair')
+    elseif isa(object, 'matlab.graphics.chart.primitive.Stair')
         line(object);
     else
         % unknown class
-        warning("unknown class - " + obj_class);
+        warning("unknown class - " + class(object));
     end   
 
     % recursive call
@@ -179,7 +178,7 @@ function inspect_child(object)
         end    
     end
 
-    if strcmp(obj_class, 'matlab.graphics.axis.Axes')
+    if isa(object, 'matlab.graphics.axis.Axes')
         setRange(object);
     end
 
