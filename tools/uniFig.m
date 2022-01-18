@@ -26,6 +26,9 @@ XMode = "auto";
 YMode = "manual";
 ZMode = "manual";
 
+% text font
+font = "Palatino";
+
 %% variables
 color = 1;
 XLim = [inf, -inf];
@@ -74,8 +77,9 @@ function axes(object)
     object.XGrid = "on";
     object.YGrid = "on";
     object.ZGrid = "on";
-
-    object.Title.Color = c_black;  
+    object.FontName = font;
+    object.Title.Color = c_black;
+    object.Title.FontName = font;
 end
 
 function line(object)
@@ -102,6 +106,7 @@ function legend(object)
     object.EdgeColor = c_black;
     object.TextColor = c_black;
     object.Color = c_white;
+    object.FontName = font;
 end
 
 function setRange(object)
@@ -135,6 +140,7 @@ end
 % recursive function called for each object
 function inspect_child(object)
 
+    % find coresponding class and set parameters
     if isa(object, 'matlab.ui.Figure')
         % None
         % maybe resize and position all legends
@@ -178,6 +184,7 @@ function inspect_child(object)
         end    
     end
 
+    % set range of axes
     if isa(object, 'matlab.graphics.axis.Axes')
         setRange(object);
     end
