@@ -65,6 +65,7 @@ function setMinMax(object, axis)
 end
 
 function axes(object)
+
     object.Color = c_white;
 
     % axis color
@@ -78,12 +79,20 @@ function axes(object)
     object.YGrid = "on";
     object.ZGrid = "on";
     object.FontName = font;
+    object.TickLabelInterpreter = "latex";
     object.Title.Color = c_black;
     object.Title.FontName = font;
+    object.Title.Interpreter = "latex";
+
+    % replace decimation . with ,
+    object.XAxis.TickLabels = strrep(object.XAxis.TickLabels, '.', ',');
+    object.YAxis.TickLabels = strrep(object.YAxis.TickLabels, '.', ',');
+    object.ZAxis.TickLabels = strrep(object.ZAxis.TickLabels, '.', ',');
 end
 
 function line(object)
     object.Color = c_line{color};
+    object.LineWidth = 1;
 
     % select next color, avoid indexing out range
     color = mod(color,length(c_line)) + 1;
@@ -107,6 +116,7 @@ function legend(object)
     object.TextColor = c_black;
     object.Color = c_white;
     object.FontName = font;
+    object.Interpreter = "latex";
 end
 
 function setRange(object)
@@ -193,21 +203,29 @@ end
 
 %% LOAD FIGURE
 
-% turn warnings off due to warnings during importing figure 
-warning off
 
-% open figure
-fig = openfig(fig_path);
+if ~exist("fig_path")
+    % use default handle
+    fig = gcf;
 
-% turn warnings back on
-warning on
+else
+    % turn warnings off due to warnings during importing figure 
+    warning off
+    
+    % open figure
+    fig = openfig(fig_path);
+    
+    % turn warnings back on
+    warning on
+end
 
 % call editing function
 inspect_child(fig);
 
-% save and close
-savefig(fig, fig_path);
-close(fig);
-
+% save and close if input arg 'file_path' exists
+if exist("fig_path")
+    savefig(fig, fig_path);
+    close(fig);
+end
 
 end
