@@ -22,7 +22,7 @@ c_violet =  [0.72, 0.27, 1.00];
 % line color scheme
 c_line = {c_blue, c_red, c_green, c_violet, c_orange};
 
-XMode = "auto";
+XMode = "manual";
 YMode = "manual";
 ZMode = "manual";
 
@@ -36,9 +36,11 @@ YLim = [inf, -inf];
 ZLim = [inf, -inf];
 
 % oversize range of plot in percent
-XOversize = 0.001;
+XOversize = 0;
 YOversize = 0.10;
 ZOversize = 0.05;
+
+axes_tab = cell(0);
 
 %% subfunctions
 function setMinMax(object, axis)
@@ -84,10 +86,9 @@ function axes(object)
     object.Title.FontName = font;
     object.Title.Interpreter = "latex";
 
-    % replace decimation . with ,
-    object.XAxis.TickLabels = strrep(object.XAxis.TickLabels, '.', ',');
-    object.YAxis.TickLabels = strrep(object.YAxis.TickLabels, '.', ',');
-    object.ZAxis.TickLabels = strrep(object.ZAxis.TickLabels, '.', ',');
+    % store axes handle
+    axes_tab = vertcat(axes_tab, object);
+ 
 end
 
 function line(object)
@@ -221,6 +222,13 @@ end
 
 % call editing function
 inspect_child(fig);
+
+% replace decimation . with ,
+for object = axes_tab
+    object.XAxis.TickLabels = strrep(object.XAxis.TickLabels, '.', ',');
+    object.YAxis.TickLabels = strrep(object.YAxis.TickLabels, '.', ',');
+    object.ZAxis.TickLabels = strrep(object.ZAxis.TickLabels, '.', ',');
+end
 
 % save and close if input arg 'file_path' exists
 if exist("fig_path")
