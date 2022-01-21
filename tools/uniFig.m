@@ -80,11 +80,15 @@ function axes(object)
     object.XGrid = "on";
     object.YGrid = "on";
     object.ZGrid = "on";
+
     object.FontName = font;
     object.TickLabelInterpreter = "latex";
     object.Title.Color = c_black;
     object.Title.FontName = font;
     object.Title.Interpreter = "latex";
+    object.XAxis.Label.Interpreter = "latex";
+    object.YAxis.Label.Interpreter = "latex";
+    object.ZAxis.Label.Interpreter = "latex";
 
     % store axes handle
     axes_tab = vertcat(axes_tab, object);
