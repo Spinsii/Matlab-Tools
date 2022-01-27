@@ -4,6 +4,7 @@ function uniFig(fig_path)
 
 % issues:
 % - cannot detect discrete lines
+dbstop if error
 
 %% CONSTANTS
 
@@ -43,6 +44,14 @@ ZOversize = 0.05;
 axes_tab = cell(0);
 
 %% subfunctions
+
+function str = vec2cell(vec, exp)
+        str = cell(length(vec), 1);
+        for i = 1:length(vec)
+            str{i} = num2str(vec(i)/power(10,double(exp)));
+        end
+    end
+
 function setMinMax(object, axis)
     try
         % min value
@@ -227,12 +236,39 @@ end
 % call editing function
 inspect_child(fig);
 
-% replace decimation . with ,
-for object = axes_tab
-    object.XAxis.TickLabels = strrep(object.XAxis.TickLabels, '.', ',');
-    object.YAxis.TickLabels = strrep(object.YAxis.TickLabels, '.', ',');
-    object.ZAxis.TickLabels = strrep(object.ZAxis.TickLabels, '.', ',');
-end
+%%%% WIP %%%%%
+% % replace decimation . with ,
+% for j = 1:length(axes_tab)
+%     object = axes_tab(j);
+% 
+%     % get correct Exponent
+%     object.XAxis.TickLabelsMode = 'auto';
+%     object.YAxis.TickLabelsMode = 'auto';
+%     object.ZAxis.TickLabelsMode = 'auto';
+%     object.XAxis.ExponentMode = "auto";
+%     object.YAxis.ExponentMode = "auto";
+%     object.ZAxis.ExponentMode = "auto";
+% 
+%     % get exponent
+%     expX = object.XAxis.Exponent;
+%     expY = object.YAxis.Exponent;
+%     expZ = object.ZAxis.Exponent;
+% 
+%     % set to manual mode
+%     object.XAxis.TickLabelsMode = 'manual';
+%     object.YAxis.TickLabelsMode = 'manual';
+%     object.ZAxis.TickLabelsMode = 'manual';
+% 
+%     % restore exponent
+%     object.XAxis.Exponent = expX;
+%     object.YAxis.Exponent = expY;
+%     object.ZAxis.Exponent = expZ;
+% 
+%     object.XAxis.TickLabels = strrep(vec2cell(object.XAxis.TickValues, expX), '.', ',');
+%     object.YAxis.TickLabels = strrep(vec2cell(object.YAxis.TickValues, expY), '.', ',');
+%     object.ZAxis.TickLabels = strrep(vec2cell(object.ZAxis.TickValues, expZ), '.', ',');
+% 
+% end
 
 % save and close if input arg 'file_path' exists
 if exist("fig_path")
