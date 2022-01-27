@@ -1,10 +1,13 @@
 function uniFig(fig_path)
 %UNIFIG adapts figure for papers
-%   recolors the figure to suit acadamic papers
+%   uniFig('path') ... edits the file in the path and saves it   
+%
+%   uniFig() ... edits the current open figure (uses the gcf-handle), it
+%   does not save the file automatically
 
 % issues:
 % - cannot detect discrete lines
-dbstop if error
+% dbstop if error
 
 %% CONSTANTS
 
