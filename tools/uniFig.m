@@ -1,282 +1,457 @@
-function uniFig(fig_path)
-%UNIFIG adapts figure for papers
-%   uniFig('path') ... edits the file in the path and saves it   
+function varargout = uniFig( varargin )
+%   UNIFIG generate uniform figures
+%   docu
 %
-%   uniFig() ... edits the current open figure (uses the gcf-handle), it
-%   does not save the file automatically
+%      NOTE: arguments are not implementet yet
+%   ARGUMENTS
+%   '-s'        saves file after modifing it 
+%   '-t_size'   sets the font size  (needs an additional parameter)
+%
+%   Copyright 2022 Lukas Pinsker
 
-% issues:
-% - cannot detect discrete lines
-% dbstop if error
+% TODO
+% - fix varargin check
+
+% check varargin
+var_len = length(varargin);
+
+fig_handle = "";
+argument = {};
+
+% check for figure handle
+if var_len == 0 || startsWith(varargin{1}, "-")
+    % no figure handle passed
+    fig_handle = gcf;
+    argument = varargin;
+
+else
+    % figure path passed
+    fig_handle = openfig( varargin{1} );
+    var_len = var_len - 1;
+
+    % modify input argument to exclude figure handle
+    if var_len > 0
+        argument = varargin{2:end};
+    end
+end
 
 %% CONSTANTS
+c_black =       [0, 0, 0];
+c_white =       [1, 1, 1];
+c_lightgrey =   [0.5, 0.5, 0.5];
 
-% base colors
-c_white = [1, 1, 1];
-c_black = [0, 0, 0];
-c_lightgrey = [0.5, 0.5, 0.5];
-
-% colors for lines
 c_red =     [1, 0, 0];
 c_orange =  [1.00, 0.4, 0.16];
 c_blue =    [0.00, 0.45, 0.74];
 c_green =   [0.39, 0.83, 0.07];
 c_violet =  [0.72, 0.27, 1.00];
 
-% line color scheme
-c_line = {c_blue, c_red, c_green, c_violet, c_orange};
+%% ARG STRUCT
 
-XMode = "manual";
-YMode = "manual";
-ZMode = "manual";
+arg_.s =            false;
 
-% text font
-font = "Palatino";
+% Font
+arg_.Interpreter =  'latex';
+arg_.FontName =     'Palatino';
+arg_.FontSize =     11;
+arg_.TextColor =    c_black;
 
-%% variables
-color = 1;
-XLim = [inf, -inf];
-YLim = [inf, -inf];
-ZLim = [inf, -inf];
+% Grid
+arg_.XGrid =        'on';
+arg_.YGrid =        'on';
+arg_.ZGrid =        'on';
+arg_.AxesBox =      'on';
 
-% oversize range of plot in percent
-XOversize = 0;
-YOversize = 0.10;
-ZOversize = 0.05;
+% Color
+arg_.AxesBackgroundColor =  c_white;
+arg_.AxesGridColor =        c_lightgrey;
+arg_.AxesRulerColor =       c_black;
+arg_.UIContainerBackgroundColor = c_white;
+arg_.PanelBackgroundColor = c_white;
+arg_.GridColor =    c_black;
+arg_.LegendBackgroundColor = c_white;
+arg_.LegendEdgeColor =  c_black;
 
-axes_tab = cell(0);
+% Ruler
+arg_.ExpSI =        true;
 
-%% subfunctions
+% Line
+arg_.LineSize =     1;
+arg_.LineColor = {c_blue, c_red, c_green, c_violet, c_orange};
 
-function str = vec2cell(vec, exp)
-        str = cell(length(vec), 1);
-        for i = 1:length(vec)
-            str{i} = num2str(vec(i)/power(10,double(exp)));
-        end
+% Oversize
+arg_.XOversize =    0.0;
+arg_.YOversize =    0.10;
+arg_.ZOversize =    0.05;
+
+% check arguments
+% support_arg = fieldnames(arg_);
+
+% arg = false;
+% arg_v = '';
+% for i = 1:var_len
+%     
+%     if isa(argument{i}, "string") && startsWith(argument{i}, "-")
+% 
+%         if arg == true
+%            varargout = -2;
+%            error("missing option for " + argument{i-1})
+%         end
+% 
+%         if ~any(strcmp(support_arg,argument{i}{1}(2:end)))
+%             varargout = -1;
+%             error("Argument " + argument{i} + " does not exist!");           
+%         end
+% 
+%         arg_v = support_arg{ strcmp( support_arg,argument{i}{1}(2:end) ) };
+%         arg = getfield(arg_, arg_v, 'para');
+% 
+%     elseif arg == true
+% 
+%         % set param
+%         arg_ = setfield(arg_, arg_v, argument{i});
+% 
+%         arg = false;
+% 
+%     else
+%         error("option '" + argument{i} + "' does not exist")
+% 
+%     end
+% end
+
+obj = load_figure(fig_handle);
+
+setFont(obj, arg_);
+setColor(obj, arg_);
+setLine(obj, arg_);
+setGrid(obj, arg_);
+setRuler(obj, arg_);
+
+end
+
+
+function obj = load_figure(handle)
+
+    obj.Axes = findobj(handle, 'Type', 'Axes');
+
+    obj.Line = {};
+    for ax = obj.Axes'
+        obj.Line{end+1} = findobj(ax, 'Type', 'Line');
     end
 
-function setMinMax(object, axis)
-    try
-        % min value
-        Min = eval("min(object." + axis + "Data);");
+    obj.Scatter = findobj(handle, 'Type', 'Scatter');    % TODO
+    obj.UIContainer = findobj(handle, 'Type', 'UIContainer');
+    obj.Panel = findobj(handle, 'Type', 'Panel');
+    obj.Legend = findobj(handle, 'Type', 'Legend');
+    obj.Stair = findobj(handle, 'Type', 'Stair');
+    obj.Figure = findobj(handle, 'Type', 'Figure');
+    obj.Exp = findall(handle, 'Tag', 'expTag');
+   
+end
+
+%% SETFONT
+% calls every function for formating the font
+function setFont(obj, arg_)
+
+    set_FontSize(obj, arg_);
+    set_FontName(obj, arg_);
+    set_FontInterpreter(obj, arg_);
+    set_FontColor(obj, arg_);
+
+end
+
+% set FontSize
+function set_FontSize(obj, arg)
+    iterate(obj.Legend, 'FontSize', arg.FontSize);
+    iterate(obj.Axes, 'FontSize', arg.FontSize);
+    iterate(obj.Exp, 'FontSize', arg.FontSize);
+end
+
+% set FontName
+function set_FontName(obj, arg)
+    iterate(obj.Legend, 'FontName', arg.FontName);
+    iterate(obj.Axes, 'FontName', arg.FontName);
+    iterate(obj.Exp, 'FontName', arg.FontName);
+    iterate(obj.Axes, {'Title','FontName'}, arg.FontName)
+end
+
+% set FontInterpreter
+function set_FontInterpreter(obj, arg)
+    iterate(obj.Legend, 'Interpreter', arg.Interpreter);
+    iterate(obj.Axes, 'TickLabelInterpreter', arg.Interpreter);
+    iterate(obj.Axes, {'Title','Interpreter'}, arg.Interpreter);
+    iterate(obj.Axes, {'XAxis','Label','Interpreter'}, arg.Interpreter);
+    iterate(obj.Axes, {'YAxis','Label','Interpreter'}, arg.Interpreter);
+    iterate(obj.Axes, {'ZAxis','Label','Interpreter'}, arg.Interpreter);
+    iterate(obj.Exp, 'Interpreter', arg.Interpreter);
+end
+
+function set_FontColor(obj, arg)
+    iterate(obj.Legend, 'TextColor', arg.TextColor);
+    iterate(obj.Axes, 'XColor', arg.TextColor);
+    iterate(obj.Axes, 'YColor', arg.TextColor);
+    iterate(obj.Axes, 'ZColor', arg.TextColor);
+    iterate(obj.Axes, {'Title', 'Color'}, arg.TextColor);
+    iterate(obj.Exp, 'Color', arg.TextColor);
+end
+
+%% SETCOLOR
+function setColor(handle, arg)
+
+    set_AxisColor(handle, arg);
+    set_UIContainerColor(handle, arg);
+    set_PanelColor(handle, arg);
+    set_LegendColor(handle, arg);
+    set_GridColor(handle, arg);
     
-        % max value
-        Max = eval("max(object." + axis + "Data);");
-    
-        % store min
-        if ~isempty(Min)
-            eval(axis + "Lim(1) = min(" + axis + "Lim(1), Min);");
-        end
-    
-        % store max
-        if ~isempty(Max)
-            eval(axis + "Lim(2) = max(" + axis + "Lim(2), Max);");
-        end
-
-    catch
-        % axis doesnt have that parameter
-    end
 end
 
-function axes(object)
+function set_AxisColor(obj, arg)
 
-    object.Color = c_white;
+    iterate(obj.Axes, 'XColor', arg.AxesRulerColor);
+    iterate(obj.Axes, 'YColor', arg.AxesRulerColor);
+    iterate(obj.Axes, 'ZColor', arg.AxesRulerColor);
 
-    % axis color
-    object.XColor = c_black;
-    object.YColor = c_black;
-    object.ZColor = c_black;
-    
-    % grid
-    object.GridColor = c_lightgrey;
-    object.XGrid = "on";
-    object.YGrid = "on";
-    object.ZGrid = "on";
-
-    object.FontName = font;
-    object.TickLabelInterpreter = "latex";
-    object.Title.Color = c_black;
-    object.Title.FontName = font;
-    object.Title.Interpreter = "latex";
-    object.XAxis.Label.Interpreter = "latex";
-    object.YAxis.Label.Interpreter = "latex";
-    object.ZAxis.Label.Interpreter = "latex";
-
-    % store axes handle
-    axes_tab = vertcat(axes_tab, object);
- 
+    iterate(obj.Axes, 'Color', arg.AxesBackgroundColor);
 end
 
-function line(object)
-    object.Color = c_line{color};
-    object.LineWidth = 1;
-
-    % select next color, avoid indexing out range
-    color = mod(color,length(c_line)) + 1;
-
-    % store range of line
-    setMinMax(object,"X");
-    setMinMax(object,"Y");
-    setMinMax(object,"Z");
+function set_UIContainerColor(obj, arg)
+    iterate(obj.UIContainer, 'BackgroundColor', arg.UIContainerBackgroundColor)
 end
 
-function UIContainer(object)
-    object.BackgroundColor = c_white;
+function set_PanelColor(obj, arg)
+    iterate(obj.Panel, 'BackgroundColor', arg.PanelBackgroundColor)
 end
 
-function panel(object)
-    object.BackgroundColor = c_white;
+function set_LegendColor(obj, arg)
+    iterate(obj.Legend, 'Color', arg.LegendBackgroundColor);
+    iterate(obj.Legend, 'EdgeColor', arg.LegendEdgeColor);
 end
 
-function legend(object)
-    object.EdgeColor = c_black;
-    object.TextColor = c_black;
-    object.Color = c_white;
-    object.FontName = font;
-    object.Interpreter = "latex";
+function set_GridColor(obj, arg)
+    iterate(obj.Axes, 'GridColor', arg.AxesGridColor);
 end
 
-function setRange(object)
-    % set limit for axis
-    dX = XLim(2) - XLim(1);
-    dY = YLim(2) - YLim(1);
-    dZ = ZLim(2) - ZLim(1);
+%% SETGRID
+function setGrid(handle, arg)
 
-    % calculate delta size
-    dX = dX * XOversize;
-    dY = dY * YOversize;
-    dZ = dZ * ZOversize;
-
-    % set range
-    if abs(dX) ~= inf
-        object.XLim = [XLim(1) - dX, XLim(2) + dX];
-    end
-    if abs(dY) ~= inf
-        object.YLim = [YLim(1) - dY, YLim(2) + dY];
-    end
-    if abs(dZ) ~= inf
-        object.ZLim = [ZLim(1) - dZ, ZLim(2) + dZ];
-    end
-
-    % set range
-    object.XLimMode = XMode;
-    object.YLimMode = YMode;
-    object.ZLimMode = ZMode;
+    iterate(handle.Axes, 'XGrid', arg.XGrid);
+    iterate(handle.Axes, 'YGrid', arg.YGrid);
+    iterate(handle.Axes, 'ZGrid', arg.ZGrid);
+    iterate(handle.Axes, 'Box', arg.AxesBox)
+   
+   
 end
 
-% recursive function called for each object
-function inspect_child(object)
+%% SETLINE
+function setLine(handle, arg)
 
-    % find coresponding class and set parameters
-    if isa(object, 'matlab.ui.Figure')
-        % None
-        % maybe resize and position all legends
-    elseif isa(object, 'matlab.graphics.axis.Axes')
+    for ax_ = handle.Line
+        ax = ax_{1};
+        iterate(ax, 'LineWidth', arg.LineSize);
 
-        % reset colormap
-        color = 1;
-
-        % reset scaling
         XLim = [inf, -inf];
         YLim = [inf, -inf];
         ZLim = [inf, -inf];
-     
-        axes(object);
 
-    elseif isa(object, 'matlab.graphics.chart.primitive.Line')
-        line(object)
-    elseif isa(object, 'matlab.graphics.primitive.Transform')
-        % None
-    elseif isa(object, 'matlab.graphics.primitive.Line')
-        line(object);
-    elseif isa(object, 'matlab.ui.container.Panel')
-        panel(object);
-    elseif isa(object, 'matlab.graphics.illustration.Legend')
-        legend(object)
-    elseif isa(object, 'matlab.ui.container.internal.UIContainer')
-        UIContainer(object)
-    elseif isa(object, 'matlab.graphics.chart.primitive.Stair')
-        line(object);
-    else
-        % unknown class
-        warning("unknown class - " + class(object));
-    end   
+        for i = 1:length(ax)
+            ax(i).Color = arg.LineColor{mod(i,length(arg.LineColor))};
 
-    % recursive call
-    if object.isprop("Children")
-        child = object.Children;
+            XLim = MinMax(ax(i).XData, XLim);
+            YLim = MinMax(ax(i).YData, YLim);
+            ZLim = MinMax(ax(i).ZData, ZLim);
 
-        for i = 1:length(child)
-            inspect_child(child(i));
-        end    
+        end
+
+        ax(1).Parent.XLim = setMinMax(ax(1).Parent.XLim, XLim, arg.XOversize);
+        ax(1).Parent.YLim = setMinMax(ax(1).Parent.YLim, YLim, arg.YOversize);
+        ax(1).Parent.ZLim = setMinMax(ax(1).Parent.ZLim, ZLim, arg.ZOversize);
+
     end
 
-    % set range of axes
-    if isa(object, 'matlab.graphics.axis.Axes')
-        setRange(object);
+    % MINMAX
+    function val = MinMax(data, lim)
+         Min = min(data);
+         Max = max(data);
+
+         if ~isempty(data)
+
+            if Min > lim(1)
+                Min = lim(1);
+            end
+
+            if Max < lim(2)
+                Max = lim(2);
+            end
+
+         else
+
+            Min = lim(1);
+            Max = lim(2);
+
+         end
+
+         val = [Min, Max];
+    end
+
+    % SETMINMAX
+    function val = setMinMax(ax, lim, ov)
+
+        if ~any(isinf(lim))
+            diff = abs(lim(1) - lim(2));
+            val =  [lim(1) - diff*ov, lim(2) + diff*ov];
+        else
+            % avoid inf in expression
+            val = ax;
+        end
+
     end
 
 end
 
-%% LOAD FIGURE
+%% SETRULER
+function setRuler(handle, arg)
+    % TODO
+    set_Exp(handle, arg);
 
-
-if ~exist("fig_path")
-    % use default handle
-    fig = gcf;
-
-else
-    % turn warnings off due to warnings during importing figure 
-    warning off
-    
-    % open figure
-    fig = openfig(fig_path);
-    
-    % turn warnings back on
-    warning on
 end
 
-% call editing function
-inspect_child(fig);
+function set_Exp(obj, arg)
 
-%%%% WIP %%%%%
-% % replace decimation . with ,
-% for j = 1:length(axes_tab)
-%     object = axes_tab(j);
-% 
-%     % get correct Exponent
-%     object.XAxis.TickLabelsMode = 'auto';
-%     object.YAxis.TickLabelsMode = 'auto';
-%     object.ZAxis.TickLabelsMode = 'auto';
-%     object.XAxis.ExponentMode = "auto";
-%     object.YAxis.ExponentMode = "auto";
-%     object.ZAxis.ExponentMode = "auto";
-% 
-%     % get exponent
-%     expX = object.XAxis.Exponent;
-%     expY = object.YAxis.Exponent;
-%     expZ = object.ZAxis.Exponent;
-% 
-%     % set to manual mode
-%     object.XAxis.TickLabelsMode = 'manual';
-%     object.YAxis.TickLabelsMode = 'manual';
-%     object.ZAxis.TickLabelsMode = 'manual';
-% 
-%     % restore exponent
-%     object.XAxis.Exponent = expX;
-%     object.YAxis.Exponent = expY;
-%     object.ZAxis.Exponent = expZ;
-% 
-%     object.XAxis.TickLabels = strrep(vec2cell(object.XAxis.TickValues, expX), '.', ',');
-%     object.YAxis.TickLabels = strrep(vec2cell(object.YAxis.TickValues, expY), '.', ',');
-%     object.ZAxis.TickLabels = strrep(vec2cell(object.ZAxis.TickValues, expZ), '.', ',');
-% 
-% end
+    % calculate new exponent
+    for i = 1:length(obj.Axes)
+        Axis = obj.Axes(i);
 
-% save and close if input arg 'file_path' exists
-if exist("fig_path")
-    savefig(fig, fig_path);
-    close(fig);
+
+        XExp = calc_exp(Axis.XAxis.Limits, arg);
+        YExp = calc_exp(Axis.YAxis.Limits, arg);
+            
+
+        % remove old exponent textboxes
+        delete(obj.Exp);
+        
+        % function for creating annotations
+        annot = @(l, b, exp, fsize, font, ah, av) annotation('textbox',...
+        [l, b, 0, 0],...
+        'VerticalAlignment',av,...
+        'HorizontalAlignment',ah,...
+        'Margin',0,...
+        'String',strcat('$\times10^{', num2str(exp), "}$"),...
+        'FontSize',fsize,...
+        'FontName',font,...
+        'Interpreter','latex',...
+        'EdgeColor',[0 0 0],...
+        'Color',[0 0 0],...
+        'Tag' , 'expTag');
+
+        % [left bottom width height]
+        axispos = obj.Axes.Position;
+
+        % calculate normalized points
+        sizeNR = arg.FontSize / obj.Figure.Position(4);
+
+        xl = inRange(axispos(1) + axispos(3));
+        xb = inRange(axispos(2) - 2.5 * sizeNR);
+        yl = inRange(axispos(1));
+        yb = inRange(axispos(2) + axispos(4));
+
+        if XExp ~= 0
+            annot(xl, xb, XExp, arg.FontSize, arg.FontName ,'right', 'top')
+        end
+        if YExp ~= 0
+            annot(yl, yb, YExp, arg.FontSize, arg.FontName, 'left', 'bottom')
+        end
+
+
+        set_DecimalSeparator(Axis.XAxis, XExp);
+        set_DecimalSeparator(Axis.YAxis, YExp);
+
+    end
+
+
+    function exponent = calc_exp(ticks, arg)
+        [~, pos] = max(abs(ticks), [], 'all');
+
+        Val = ticks(pos);
+
+        Val_a = abs(Val);
+
+        exponent = 0;
+        if Val_a >= 1
+            % numbers with positiv exponents
+            while Val_a / 10.^exponent >= 10
+                exponent = exponent + 1;
+            end
+
+        else
+            % numbers with negativ exponents
+            while Val_a * 10.^-exponent < 1
+                exponent = exponent - 1;
+            end
+
+        end
+
+        % only multiple of 3 is allowed as exponent
+        if arg.ExpSI == true
+            if sign(exponent) > 0
+                exponent = exponent - mod(exponent,3);
+            elseif sign(exponent) < 0
+                exponent = exponent + mod(abs(exponent),3) - 3;
+            end
+        end
+
+    end
+
+    function val = inRange(val) 
+        if 1 < val
+            val = 1;
+        elseif val < 0
+            val = 0;
+        end 
+    end
+
 end
 
+function set_DecimalSeparator(obj, exp)
+    ticks = obj.TickValues;
+
+    ticks = ticks / 10.^exp;
+
+    tick_cell = cell(length(ticks),1);
+
+    for i = 1:length(tick_cell)
+        tick_cell{i} = strrep(num2str(ticks(i)),'.',',');
+    end
+
+    obj.TickLabelsMode = 'manual';
+    obj.TickLabels = tick_cell;
+end
+
+%% helper functions
+
+% iterate
+% applies changes to every object array member
+function iterate(obj, call, arg)
+    % if called with unnested parameter create cell for processing it later 
+    if isa(call, 'char')
+        call = {call};
+    end
+
+    % iterate through the object array
+    for i = 1:length(obj)
+        
+        % for nested structs
+        nobj = obj(i);
+        for k = 1:length(call)
+            
+            % set parameter
+            if k == length(call)
+                nobj.(call{k}) = arg;
+                break;
+            end
+
+            % move one layer deeper in the nested element
+            nobj = nobj.(call{k});
+        end
+    end
 end
