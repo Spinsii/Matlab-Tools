@@ -46,10 +46,6 @@ function UF_lmtchng(src, ~, SI, axis)
             warning("issue with callback - unknown axis in callback")
     end
 
-    if isempty(exp_obj)
-        return
-    end
-
     % get axis limits
     limit = src.Limits;
 
@@ -60,7 +56,11 @@ function UF_lmtchng(src, ~, SI, axis)
     Exp = UF_calc_exp(limit, arg);
 
     % modify exponent
-    exp_obj.String = strcat('$\times10^{', num2str(Exp), '}$');
+    if Exp == 0
+        delete(exp_obj)
+    else
+        exp_obj.String = strcat('$\times10^{', num2str(Exp), '}$');
+    end
 
     % correct axis ticks
     UF_set_DecimalSeparator(src, Exp);
