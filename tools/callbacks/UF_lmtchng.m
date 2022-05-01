@@ -23,7 +23,7 @@ function UF_lmtchng(src, ~, SI, axis)
     % load exponents
     switch axis
         case 'X'
-            exp_obj = findall(groot, '-regexp', 'Tag', 'expTag_X');
+            exp_obj = findall(groot, 'Tag', 'expTag_X');
 
             if isempty(exp_obj)
                 xl = inRange(axispos(1) + axispos(3));
@@ -32,7 +32,7 @@ function UF_lmtchng(src, ~, SI, axis)
                 exp_obj = findall(groot, '-regexp', 'Tag', 'expTag_X');
             end
         case 'Y'
-            exp_obj = findall(groot, '-regexp', 'Tag', 'expTag_Y');
+            exp_obj = findall(groot, 'Tag', 'expTag_Y');
 
             if isempty(exp_obj)
                 yl = inRange(axispos(1));
@@ -41,7 +41,7 @@ function UF_lmtchng(src, ~, SI, axis)
                 exp_obj = findall(groot, '-regexp', 'Tag', 'expTag_Y');
             end
         case 'Z'
-            exp_obj = findall(groot, '-regexp', 'Tag', 'expTag_Z');
+            exp_obj = findall(groot, 'Tag', 'expTag_Z');
         otherwise
             warning("issue with callback - unknown axis in callback")
     end
