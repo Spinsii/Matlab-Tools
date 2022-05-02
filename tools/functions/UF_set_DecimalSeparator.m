@@ -10,6 +10,11 @@ function UF_set_DecimalSeparator(obj, exp)
         tick_cell{i} = strrep(num2str(ticks(i),6),'.',',');
     end
 
-    obj.TickLabelsMode = 'manual';
-    obj.TickLabels = tick_cell;
+    if strcmp(obj.Scale, 'linear')
+        obj.TickLabelsMode = 'manual';
+        obj.TickLabels = tick_cell;
+    else
+        obj.TickLabelsMode = 'auto';
+    end
+    
 end

@@ -46,11 +46,13 @@ function set_Exp(obj, arg)
         yl = inRange(axispos(1));
         yb = inRange(axispos(2) + axispos(4));
 
-        if XExp ~= 0
+        if strcmp(obj.Scale, 'linear')
+            if XExp ~= 0
             annot(xl, xb, XExp, arg.FontSize, arg.FontName ,'right', 'top', 'expTag_X')
-        end
-        if YExp ~= 0
-            annot(yl, yb, YExp, arg.FontSize, arg.FontName, 'left', 'bottom' , 'expTag_Y')
+            end
+            if YExp ~= 0
+                annot(yl, yb, YExp, arg.FontSize, arg.FontName, 'left', 'bottom' , 'expTag_Y')
+            end
         end
 
         % set correct seperator

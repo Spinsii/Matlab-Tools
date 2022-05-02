@@ -56,7 +56,7 @@ function UF_lmtchng(src, ~, SI, axis)
     Exp = UF_calc_exp(limit, arg);
 
     % modify exponent
-    if Exp == 0
+    if Exp == 0 || strcmp(src.Scale, 'log')
         delete(exp_obj)
     else
         exp_obj.String = strcat('$\times10^{', num2str(Exp), '}$');
